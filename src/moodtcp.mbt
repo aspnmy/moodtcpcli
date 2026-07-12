@@ -1,6 +1,10 @@
+#borrow(host)
 extern "C" fn tcp_connect(host: Bytes, port: Int) -> Int = "moonbit_tcp_connect"
 extern "C" fn tcp_close(fd: Int) -> Unit = "moonbit_tcp_close"
 extern "C" fn tcp_listen(port: Int) -> Int = "moonbit_tcp_listen"
+#borrow(host)
+#borrow(req)
+#borrow(resp)
 extern "C" fn http_request(host: Bytes, port: Int, req: Bytes, resp: FixedArray[Byte], size: Int) -> Int = "moonbit_http_request"
 
 pub fn tcp_ping(host: String, port: Int) -> Result[Unit, String] {
@@ -13,13 +17,23 @@ pub fn tcp_ping(host: String, port: Int) -> Result[Unit, String] {
 
 pub fn http_get(url: String) -> Result[String, String] {
   let (h, p, path) = parse_url(url)
-  let req = "GET " + path + " HTTP/1.1\r\nHost: " + h + "\r\nConnection: close\r\n\r\n"
+  let req = "GET " + path + " HTTP/1.1
+Host: " + h + "
+Connection: close
+
+"
   http_req(h, p, req)
 }
 
 pub fn http_post(url: String, body: String) -> Result[String, String] {
   let (h, p, path) = parse_url(url)
-  let req = "POST " + path + " HTTP/1.1\r\nHost: " + h + "\r\nContent-Type: application/json\r\nContent-Length: " + body.length().to_string() + "\r\nConnection: close\r\n\r\n" + body
+  let req = "POST " + path + " HTTP/1.1
+Host: " + h + "
+Content-Type: application/json
+Content-Length: " + body.length().to_string() + "
+Connection: close
+
+" + body
   http_req(h, p, req)
 }
 
@@ -42,7 +56,9 @@ fn http_req(host: String, port: Int, req: String) -> Result[String, String] {
 }
 
 fn extract_body(resp: String) -> String {
-  match resp.find("\r\n\r\n") {
+  match resp.find("
+
+") {
     Some(pos) => resp[:pos].to_owned()
     None => resp
   }
