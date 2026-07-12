@@ -17,23 +17,13 @@ pub fn tcp_ping(host: String, port: Int) -> Result[Unit, String] {
 
 pub fn http_get(url: String) -> Result[String, String] {
   let (h, p, path) = parse_url(url)
-  let req = "GET " + path + " HTTP/1.1
-Host: " + h + "
-Connection: close
-
-"
+  let req = "GET " + path + " HTTP/1.1\r\nHost: " + h + "\r\nConnection: close\r\n\r\n"
   http_req(h, p, req)
 }
 
 pub fn http_post(url: String, body: String) -> Result[String, String] {
   let (h, p, path) = parse_url(url)
-  let req = "POST " + path + " HTTP/1.1
-Host: " + h + "
-Content-Type: application/json
-Content-Length: " + body.length().to_string() + "
-Connection: close
-
-" + body
+  let req = "POST " + path + " HTTP/1.1\r\nHost: " + h + "\r\nContent-Type: application/json\r\nContent-Length: " + body.length().to_string() + "\r\nConnection: close\r\n\r\n" + body
   http_req(h, p, req)
 }
 
@@ -56,9 +46,7 @@ fn http_req(host: String, port: Int, req: String) -> Result[String, String] {
 }
 
 fn extract_body(resp: String) -> String {
-  match resp.find("
-
-") {
+  match resp.find("\r\n\r\n") {
     Some(pos) => resp[:pos].to_owned()
     None => resp
   }
